@@ -4,25 +4,36 @@ defmodule Jobchecker do
   Documentation for `Jobchecker`.
   """
 
-  @doc """
-  Hello world.
+  def init({company, steps, filters}, return_pid) do
+    jobs = recurse(steps)
+    |> filter(filters)
+    |> Enum.uniq() #At least one job board allows for duplicates. This causes false positives in detecting new jobs.
 
-  ## Examples
+    send(return_pid, {company, jobs})
+  end
 
-      iex> Jobchecker.hello()
-      :world
+  def recurse(steps), do: recurse(steps, nil)
 
-  """
-
-
-  def test() do
-    # parsed_json =
-    #   get_html("https://www.brex.com/careers")
-    #   |> get_json_from_html("script#__NEXT_DATA__")
-    # Enum.zip(get_data_from_json(parsed_json, ~S/.."jobs".."title"/), get_data_from_json(parsed_json, ~S/.."jobs".."absolute_url"/))
-
-    # parsed_json = get_json("https://jobs.netflix.com/api/search", [params: [location: "Remote, United States"]])
-    # Enum.zip(get_data_from_json(parsed_json, ~S/.."text"/), Enum.map(get_data_from_json(parsed_json, ~S/.."external_id"/), fn x -> "https://jobs.netflix.com/jobs/" <> x end))
-
+  def recurse([], data), do: data
+  def recurse([command | remaining], data) do
+    next_data =
+      case command do
+        {:get_response_headers, {url, params}} -> get_response_headers(url, params)
+        {:get_response_headers, url} -> get_response_headers(url)
+        {:get_html, {url, params} } -> get_html(url, params)
+        {:get_html, url} -> get_html(url)
+        :get_html -> get_html(data)
+        {:get_json_from_html, matcher} -> get_json_from_html(data, matcher)
+        {:get_json, {url, params}} -> get_json(url, params)
+        {:get_json, url} -> get_json(url)
+        :get_json -> get_json(data)
+        {:post_json, url, body, headers, next_page_function} -> follow_pages(url, body, headers, next_page_function)
+        {:post_json_with_carried_headers, url, body, next_page_function} -> follow_pages(url, body, data, next_page_function)
+        {:generate_title_and_url_from_json, title_match, url_match} -> generate_title_and_url(data, title_match, url_match)
+        {:eval, to_eval} -> to_eval.(data)
+        {:get_element_from_html, element} -> get_element_from_html(data, element)
+        _ -> raise "Unrecognized command #{command} in config"
+    end
+    recurse(remaining, next_data)
   end
 end
