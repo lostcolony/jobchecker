@@ -17,7 +17,8 @@ defmodule Jobchecker do
   def recurse([], data), do: data
   def recurse([command | remaining], data) do
     next_data =
-      case command do
+      case command do #Modify this to also match on data; then match on necessary keys to get compiler help, and an indication on what keys are needed for each command.
+        {:load_data, map} when is_map(map)-> Enum.into(map, data)
         {:get_response_headers, {url, params}} -> get_response_headers(url, params)
         {:get_response_headers, url} -> get_response_headers(url)
         {:get_html, {url, params} } -> get_html(url, params)
