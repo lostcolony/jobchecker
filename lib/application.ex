@@ -1,7 +1,6 @@
-defmodule Jobchecker.Application do
-  use Application
+defmodule Jobchecker.Main do
 
-  def start(_, _) do
+  def main(_args) do
     Orchestration.run()
   end
 end
