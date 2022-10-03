@@ -18,7 +18,7 @@ defmodule Jobchecker do
   def execute([], data), do: data.titles_and_urls
   def execute([command | remaining], data) do
     next_data =
-      case {command, data} do #Modify this to also match on data; then match on necessary keys to get compiler help, and an indication on what keys are needed for each command.
+      case {command, data} do
         {{:load_data, map}, nil} -> map
         {{:load_data, map}, data} when is_map(data) -> Enum.into(map, data)
         {:get_response_headers, %{url: _url}} -> get_response_headers(data)
@@ -29,6 +29,7 @@ defmodule Jobchecker do
         {:generate_title_and_url_from_json, %{title_match: _, url_match: _, decoded_json: _}} -> generate_title_and_url(data)
         {{:eval, to_eval}, data} when is_function(to_eval)-> to_eval.(data)
         {:get_element_from_html, data} -> get_element_from_html(data)
+        {:prefix_url, data} -> prefix_url(data)
         {:inspect, data} ->
           IO.inspect(data)
           data

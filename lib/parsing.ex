@@ -63,6 +63,12 @@ defmodule Parsing do
     Map.put(data, :titles_and_urls, titles_and_urls)
   end
 
+  def prefix_url(%{titles_and_urls: _, url_prefix: _} = data) do
+    Map.update!(data, :titles_and_urls, fn titles_and_urls ->
+      Enum.map(titles_and_urls, fn {title, id} -> {title, data.url_prefix <> id} end)
+    end)
+  end
+
   def filter(titles_and_urls, []), do: titles_and_urls
   def filter(titles_and_urls, terms) do
     Enum.filter(titles_and_urls, fn {title, _} ->
