@@ -22,6 +22,7 @@ defmodule Jobchecker do
         {{:load_data, map}, nil} -> map
         {{:load_data, map}, data} when is_map(data) -> Enum.into(map, data)
         {:get_response_headers, %{url: _url}} -> get_response_headers(data)
+        {:get_cookies, %{url: _url}} -> get_cookies(data)
         {:get_html, %{url: _url}} -> get_html(data) #Optionally request_options
         {:get_json_from_html, %{json_matcher: _, body: _}} -> get_json_from_html(data)
         {:get_json, %{url: _url}} -> get_json(data) #Optionally request_options

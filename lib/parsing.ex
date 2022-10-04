@@ -10,8 +10,29 @@ defmodule Parsing do
     Map.put(data, :headers, HTTPoison.get!(url, [{"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0"}], Map.get(data, :request_options, [])).headers)
   end
 
+  def get_cookies(%{url: url} = data) do
+    headers = HTTPoison.get!(url).headers
+    cookies = Enum.reduce(headers, [], fn ({key, val}, acc) ->
+      case key do
+        "Set-Cookie" -> [val | acc]
+        _ -> acc
+      end
+    end)
+    |> Enum.reverse
+    |> Enum.join("; ")
+
+    data
+    |> Map.put(:cookie, cookies)
+    |> Map.put(:headers, [{"Cookie", cookies} | Map.get(data, :headers, [])])
+  end
+
+  @spec get_json(%{:url => binary, optional(any) => any}) :: %{
+          :decoded_json => any,
+          :url => binary,
+          optional(any) => any
+        }
   def get_json(data = %{url: url}) do
-    body = HTTPoison.get!(url, [{"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0"}], Map.get(data, :request_options, [])).body
+    body = HTTPoison.get!(url, Map.get(data, :headers, [{"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0"}]), Map.get(data, :request_options, [])).body
     |> JSON.decode!()
 
     Map.put(data, :decoded_json, body)
@@ -65,7 +86,14 @@ defmodule Parsing do
 
   def prefix_url(%{titles_and_urls: _, url_prefix: _} = data) do
     Map.update!(data, :titles_and_urls, fn titles_and_urls ->
-      Enum.map(titles_and_urls, fn {title, id} -> {title, data.url_prefix <> id} end)
+      Enum.map(titles_and_urls, fn {title, id} ->
+        id = if is_bitstring(id) do
+          id
+        else
+          inspect(id)
+        end
+        {title, data.url_prefix <> id}
+      end)
     end)
   end
 
