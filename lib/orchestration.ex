@@ -56,6 +56,8 @@ defmodule Orchestration do
             jobs
           end
         {company, new_jobs}
+      else
+        {company, []}
       end
     end
   end
@@ -94,7 +96,9 @@ defmodule Orchestration do
     {count, acc} =
       receive do
         {:EXIT, _, :normal} -> {count - 1, acc}
-        {:EXIT, pid, failure} -> {count - 1, Map.put(acc, Map.get(map, pid), failure)}
+        {:EXIT, pid, failure} ->
+          IO.puts("Failure:" <> inspect(Map.get(map, pid)) <> inspect(failure))
+          {count - 1, Map.put(acc, Map.get(map, pid), failure)}
         {company, jobs} -> {count, Map.put(acc, company, jobs)}
       end
     listen(map, count, acc)

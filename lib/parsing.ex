@@ -60,7 +60,7 @@ defmodule Parsing do
   end
 
   def get_element_from_html(data) do
-    element = get_element(Map.get(data, :body), Map.get(data, :css_match)) |> hd
+    element = get_element(Map.get(data, :body), Map.get(data, :css_match))
 
     Map.put(data, :element, element)
   end

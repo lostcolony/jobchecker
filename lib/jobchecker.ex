@@ -7,8 +7,11 @@ defmodule Jobchecker do
   def init({company, steps, filters}, return_pid) do
     jobs = execute(steps)
     |> filter(filters)
-    |> Enum.uniq() #At least one job board allows for duplicates. This causes false positives in detecting new jobs.
 
+    IO.inspect(jobs)
+    jobs = jobs |> Enum.uniq() #At least one job board allows for duplicates. This causes false positives in detecting new jobs.
+
+    IO.inspect(jobs)
     send(return_pid, {company, jobs})
   end
 
