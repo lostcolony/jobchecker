@@ -1,5 +1,5 @@
 defmodule Jobchecker.Jobs.Atlassian do
-  def start(url) do
+  def start([url, title_match]) do
     HTTPoison.get!(url, [{"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0"}], []).body
     |> JSON.decode!()
     |> Enum.filter(fn %{"title" => title, "locations" => locations} = job ->
@@ -13,7 +13,7 @@ defmodule Jobchecker.Jobs.Atlassian do
           String.match?(location, ~r/Remote/)
         end) &&
         (category == "Engineering" || category == "Analytics & Data Science" || category == "Site Reliability Engineering") &&
-        String.match?(title, ~r/Manager/i)
+        String.match?(title, title_match)
     end)
     |> Enum.map(fn job ->
       {Map.get(job, "title"), "https://www.atlassian.com/company/careers/details/" <>  Integer.to_string(Map.get(job, "id"))}
