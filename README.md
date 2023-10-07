@@ -2,4 +2,4 @@
 
 WIP
 
-A set of utility functions to create a script to scrape job pages, tracking updates, and emailing a configurable address any updates.
+A somewhat biased (for my use cases) scraper for job postings, tracking what's been seen and what hasn't, and emailing them at various cadences.
