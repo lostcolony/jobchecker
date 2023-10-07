@@ -8,7 +8,8 @@ defmodule Jobchecker.MixProject do
       elixir: "~> 1.13",
       escript: [main_module: Jobchecker.Main],
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      elixirc_paths: ["lib","jobs"]
     ]
   end
 

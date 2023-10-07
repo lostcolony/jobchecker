@@ -1,14 +1,11 @@
 defmodule Orchestration do
   require Logger
 
-  def run() do
-    Application.fetch_env!(:jobchecker, :file)
-    |> run
-  end
 
-  def run(file) do
+  def run() do
     Logger.debug("Executing...")
-    lookup = file |> load_jobs |> fan_out
+    names_and_funcs = elem(Code.eval_file("./jobs/jobs.exs"),0)
+    lookup = fan_out(names_and_funcs)
 
     count = map_size(lookup)
 
@@ -27,7 +24,7 @@ defmodule Orchestration do
     persist_failures(new_jobs, failures)
     Logger.debug("Finished, sleeping to next run")
     Process.sleep(60*60*1000)
-    run(file)
+    run()
   end
 
   def load_jobs(file) do
@@ -38,20 +35,22 @@ defmodule Orchestration do
     spawn_link(Jobchecker, :init, [job_tuple, self()])
   end
 
-  def fan_out(jobs) do
+  def fan_out(name_and_funcs) do
     Process.flag(:trap_exit, true)
 
-    Enum.map(jobs, fn job -> {elem(job, 0), spin_up_checker(job)} end)
+    Enum.map(name_and_funcs, fn {name, func, args} -> {name, spin_up_checker({name, func, args})} end)
     |> Enum.reduce(%{}, fn ({company, reference}, map) -> Map.put_new(map, reference, company) end)
   end
 
   def get_new_jobs(scraped_jobs) do
     for {company, jobs} <- scraped_jobs do
       if is_list(jobs) && jobs != [] do
+        jobs = Enum.uniq(jobs)
         previous_jobs = Jobchecker.Persistence.retrieve_jobs(company)
         new_jobs =
           if previous_jobs != nil do
-            jobs -- previous_jobs.jobs
+            previous_jobs = Enum.map(previous_jobs.jobs, fn ({title, url, _}) -> {title, url} end)
+            jobs -- previous_jobs
           else
             jobs
           end
@@ -74,9 +73,27 @@ defmodule Orchestration do
   end
 
   def persist_jobs(scraped_jobs) do
+    now = DateTime.to_unix(DateTime.utc_now())
     for {company, jobs} <- scraped_jobs do
       if is_list(jobs) && jobs != [] do
-        Jobchecker.Persistence.insert_jobs(company, jobs)
+        old_jobs = case Jobchecker.Persistence.retrieve_jobs(company) do
+          nil -> []
+          a -> a.jobs
+        end
+
+
+        old_jobs = Enum.filter(old_jobs, fn {_title, _url, time} ->
+          time > now - 24*60*60*1000
+        end)
+
+        jobs = Enum.map(jobs, fn({title, url}) -> {title, url, now} end)
+
+        jobs = old_jobs ++ jobs
+
+        map = Enum.reduce(jobs, Map.new(), fn({title, url, time}, inner_map) ->
+          Map.put(inner_map, {title, url}, {title, url, time})
+        end)
+        Jobchecker.Persistence.insert_jobs(company, Map.values(map))
       end
     end
   end
@@ -125,10 +142,13 @@ defmodule Orchestration do
 
 
   def send_email(body) do
+
+    IO.inspect(body)
     email = {Application.get_env(:jobchecker, :from), [Application.get_env(:jobchecker, :to)],
-    'Subject: Jobcheck Jobs\r\nFrom: Jobchecker <#{Application.get_env(:jobchecker, :from)}>\r\nTo: You\r\n\r\n#{body}'}
+    "Subject: Jobcheck Jobs\r\nFrom: Jobchecker <#{Application.get_env(:jobchecker, :from)}>\r\nTo: You\r\n\r\n#{body}"}
+
 
     options = [{:relay, Application.get_env(:jobchecker, :relay)}, {:username, Application.get_env(:jobchecker, :from)}, {:password, Application.get_env(:jobchecker, :email_password)}, {:port, Application.get_env(:jobchecker, :port)}]
-    :gen_smtp_client.send(email,options)
+    IO.inspect(:gen_smtp_client.send_blocking(email,options))
   end
 end
