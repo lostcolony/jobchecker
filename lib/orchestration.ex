@@ -23,7 +23,7 @@ defmodule Orchestration do
     persist_jobs(jobs)
     persist_failures(new_jobs, failures)
     Logger.debug("Finished, sleeping to next run")
-    Process.sleep(60*60*1000)
+    Process.sleep(60*60*1000) #TODO: Move to config
     run()
   end
 

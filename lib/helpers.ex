@@ -7,6 +7,7 @@ defmodule Jobchecker.Helpers do
     |> Floki.parse_document!()
   end
 
+  #TODO: Refactor to take a map instead of a tuple
   def filter(titles_and_urls, []), do: titles_and_urls
   def filter(titles_and_urls, terms) do
     Enum.filter(titles_and_urls,
