@@ -4,4 +4,4 @@ WIP
 
 A somewhat biased (for my use cases) scraper for job postings, tracking what's been seen and what hasn't, and emailing them at a cadence.
 
-Requires a jobs/jobs.exs file to indicate what to run.
+Requires a jobs/jobs.exs file to indicate what to run, and some environment variables as called out in configuration to enable emailing.
