@@ -54,7 +54,7 @@ defmodule Jobchecker.Jobs.Linkedin do
 
 
       {company <> " - " <> title, return_url}
-    end, [{:timeout, 10000}])
+    end, [{:timeout, 30000}])
 
     Enum.map(stream, fn {:ok, result} -> result end)
   end

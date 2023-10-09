@@ -4,7 +4,7 @@ defmodule Jobchecker.Jobs.Oracle do
   end
 
   def recurse(url, offset, filters) do
-    json = HTTPoison.get!(url <> ",offset=#{offset}", [{"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0"}], []).body
+    json = HTTPoison.get!(url <> ",offset=#{offset}", [{"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0"}], [{:timeout, 10000}, {:recv_timeout, 10000}]).body
       |> JSON.decode!()
       |> Map.get("items")
       |> Enum.at(0)

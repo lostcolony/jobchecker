@@ -18,10 +18,10 @@ defmodule Orchestration do
     end)
 
     new_jobs = get_new_jobs(jobs)
-    new_failures = get_new_failures(failures)
+    new_failures = intersect_with_old_failures(failures)
     email_new_jobs(new_jobs, new_failures)
     persist_jobs(jobs)
-    persist_failures(new_jobs, failures)
+    persist_failures(new_jobs, new_failures)
     Logger.debug("Finished, sleeping to next run")
     Process.sleep(60*60*1000) #TODO: Move to config
     run()
@@ -61,13 +61,13 @@ defmodule Orchestration do
     end
   end
 
-  def get_new_failures(failures) do
+  def intersect_with_old_failures(failures) do
     List.flatten(for {company, failure} <- failures do
       previous_failures = Jobchecker.Persistence.retrieve_failures(company)
       if previous_failures != nil do
-        []
+        previous_failures
       else
-        {company, failure}
+        %Jobchecker.Failures{company: company, failures: failure, timestamp: DateTime.utc_now()}
       end
     end)
   end
@@ -103,8 +103,8 @@ defmodule Orchestration do
       Jobchecker.Persistence.clear_failure(company)
     end
 
-    for {company, failure} <- failures do
-      Jobchecker.Persistence.insert_failures(company, failure)
+    for x <- failures do
+      Jobchecker.Persistence.insert_failures(x)
     end
   end
 
@@ -132,7 +132,12 @@ defmodule Orchestration do
       end
     end) |> Enum.join()
 
-    body = body <> (Enum.map(failures, fn {company, failure} -> company <> ":\r\n\t" <> inspect(failure) end) |> Enum.join())
+    body = body <> (Enum.map(failures, fn %Jobchecker.Failures{company: company, failures: failure, timestamp: date} ->
+      case DateTime.diff(DateTime.utc_now(), date, :second) do
+        x when x > 3601 -> company <> " has been failing for #{:erlang.float_to_binary(x/3600, [decimals: 2])} hours:\r\n\t" <> inspect(failure) # Number of seconds picked to make it so it'll have to fail over two hours before we see an email
+        _ -> ""
+      end
+     end) |> Enum.join())
     case String.length(body) do
       0 -> :ok
       _ -> send_email(body)
@@ -142,8 +147,6 @@ defmodule Orchestration do
 
 
   def send_email(body) do
-
-    IO.inspect(body)
     email = {Application.get_env(:jobchecker, :from), [Application.get_env(:jobchecker, :to)],
     "Subject: Jobcheck Jobs\r\nFrom: Jobchecker <#{Application.get_env(:jobchecker, :from)}>\r\nTo: You\r\n\r\n#{body}"}
 

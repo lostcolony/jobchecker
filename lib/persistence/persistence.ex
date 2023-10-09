@@ -35,9 +35,15 @@ defmodule Jobchecker.Persistence do
     end
   end
 
-  def insert_failures(company, failures) do
+  def insert_failures(%Jobchecker.Failures{} = x) do
     Memento.transaction! fn ->
-      Memento.Query.write(%Jobchecker.Failures{company: company, failures: failures})
+      Memento.Query.write(x)
+    end
+  end
+
+  def insert_failures(company, failures, date) do
+    Memento.transaction! fn ->
+      Memento.Query.write(%Jobchecker.Failures{company: company, failures: failures, timestamp: date})
     end
   end
 
