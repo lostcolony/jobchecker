@@ -60,15 +60,24 @@ defmodule Jobchecker.Jobs.Linkedin do
   end
 
 
-  def recurse(url, count, filter) do
-    case retrieve(Jobchecker.Helpers.get_html(url <> "&start=" <> Integer.to_string(count), []), filter) do
-      [] -> []
-      a -> a ++ recurse(url, count + 25, filter)
+  def recurse(url, count, filter, retries) do
+    try do
+      case retrieve(Jobchecker.Helpers.get_html(url <> "&start=" <> Integer.to_string(count), []), filter) do
+        [] -> []
+        a -> a ++ recurse(url, count + 25, filter, retries) #Can reset to 3 if we want it to be 3 retries per page
+      end
+    rescue
+      err -> if retries > 0 do
+        :timer.sleep(1234*(4-count))
+        recurse(url, count, filter, retries - 1)
+      else
+        reraise(err, __STACKTRACE__ )
+      end
     end
   end
 
   def start([url, filter]) do
-    recurse(url, 0, filter)
+    recurse(url, 0, filter, 3)
   end
 
 end
