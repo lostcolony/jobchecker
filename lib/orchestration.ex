@@ -16,7 +16,6 @@ defmodule Orchestration do
       _ -> false
     end
     end)
-
     new_jobs = get_new_jobs(jobs)
     new_failures = intersect_with_old_failures(failures)
     email_new_jobs(new_jobs, new_failures)
@@ -151,7 +150,8 @@ defmodule Orchestration do
     "Subject: Jobcheck Jobs\r\nFrom: Jobchecker <#{Application.get_env(:jobchecker, :from)}>\r\nTo: You\r\n\r\n#{body}"}
 
 
-    options = [{:relay, Application.get_env(:jobchecker, :relay)}, {:username, Application.get_env(:jobchecker, :from)}, {:password, Application.get_env(:jobchecker, :email_password)}, {:port, Application.get_env(:jobchecker, :port)}]
+    options = [{:relay, Application.get_env(:jobchecker, :relay)}, {:username, Application.get_env(:jobchecker, :from)}, {:password, Application.get_env(:jobchecker, :email_password)}, {:port, Application.get_env(:jobchecker, :port)},
+    {:tls_options, [{:verify, :verify_none}]}]
     IO.inspect(:gen_smtp_client.send_blocking(email,options))
   end
 end
