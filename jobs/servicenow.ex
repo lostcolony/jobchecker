@@ -1,5 +1,4 @@
 defmodule Jobchecker.Jobs.Servicenow do
-  alias Jobchecker.Jobs
   def start([url, terms]) do
     jobs = Jobchecker.Helpers.get_json(url)
     |> Map.get("jobs")
