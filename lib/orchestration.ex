@@ -136,7 +136,7 @@ defmodule Orchestration do
         x when x > 3601 -> company <> " has been failing for #{:erlang.float_to_binary(x/3600, [decimals: 2])} hours:\r\n\t" <> inspect(failure) # Number of seconds picked to make it so it'll have to fail over two hours before we see an email
         _ -> ""
       end
-     end) |> Enum.join())
+     end) |> Enum.join("\r\n"))
     case String.length(body) do
       0 -> :ok
       _ -> send_email(body)
