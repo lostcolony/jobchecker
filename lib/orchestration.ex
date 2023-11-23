@@ -122,6 +122,13 @@ defmodule Orchestration do
 
 
   def email_new_jobs(jobs, failures) do
+    {linkedInJobs, otherJobs} = Enum.split_with(jobs, fn {x, _} -> String.match?(x, ~r/LinkedIn/i) end)
+    {linkedInFailures, otherFailures} = Enum.split_with(failures, fn {x, _} -> String.match?(x, ~r/LinkedIn/i) end)
+    email_internal(linkedInJobs, linkedInFailures, "Jobchecker - LinkedIn Jobs")
+    email_internal(otherJobs, otherFailures, "Jobchecker - SELECTED JOBS")
+  end
+
+  defp email_internal(jobs, failures, subject) do
     body = Enum.map(jobs, fn ({company, job_list}) ->
       if job_list == [] do
         ""
@@ -139,15 +146,15 @@ defmodule Orchestration do
      end) |> Enum.join("\r\n"))
     case String.length(body) do
       0 -> :ok
-      _ -> send_email(body)
+      _ -> send_email(body, subject)
     end
   end
 
 
 
-  def send_email(body) do
+  def send_email(body, subject) do
     email = {Application.get_env(:jobchecker, :from), [Application.get_env(:jobchecker, :to)],
-    "Subject: Jobcheck Jobs\r\nFrom: Jobchecker <#{Application.get_env(:jobchecker, :from)}>\r\nTo: You\r\n\r\n#{body}"}
+    "Subject: #{subject}\r\nFrom: Jobchecker <#{Application.get_env(:jobchecker, :from)}>\r\nTo: You\r\n\r\n#{body}"}
 
 
     options = [{:relay, Application.get_env(:jobchecker, :relay)}, {:username, Application.get_env(:jobchecker, :from)}, {:password, Application.get_env(:jobchecker, :email_password)}, {:port, Application.get_env(:jobchecker, :port)},

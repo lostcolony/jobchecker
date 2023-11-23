@@ -9,6 +9,7 @@ defmodule Jobchecker.Jobs.Twilio do
     |> hd()
     |> Map.get("jobs")
     |> Enum.map(fn x -> {Map.get(x, "title"), Map.get(x, "absolute_url")} end)
+    |> Jobchecker.Helpers.filter(terms)
   end
 
 
