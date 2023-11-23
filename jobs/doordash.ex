@@ -10,6 +10,6 @@ defmodule Jobchecker.Jobs.Doordash do
   end
 
   def test() do
-    start(["https://careers.doordash.com/career-areas/engineering", []])
+    start(["https://careers.doordash.com/career-areas/engineering", [~r/(engineering.*manager|manager.*engineering|software.*manager|manager.*software|engineering.*director|director.*engineering|software.*director|director.*software)/i]])
   end
 end
