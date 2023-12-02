@@ -6,14 +6,6 @@ defmodule Jobchecker.Jobs.Cloudflare do
     |> Enum.map(fn x -> Map.get(x, "jobs") end)
     |> List.flatten()
     |> Enum.filter(fn x -> String.match?(get_in(x, ["location", "name"]), ~r/[R|r]emote US|[R|r]emote.*[NY|WA|CA|IL|TX]/) end)
-    |> Enum.map(fn x ->
-      id = Map.get(x, "id")
-
-      if (id == 3617453) do
-        IO.inspect(x)
-      end
-      x
-    end)
     |> Enum.map(fn job -> {Map.get(job, "title"), Map.get(job, "absolute_url")} end)
     |> Jobchecker.Helpers.filter(terms)
   end
