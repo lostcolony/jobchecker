@@ -1,6 +1,7 @@
 defmodule Jobchecker.Jobs.Netflix do
   def start([url, filters]) do
     recurse(url, 0, filters)
+    |> Enum.uniq()
   end
 
   def recurse(url, page, filters) do
