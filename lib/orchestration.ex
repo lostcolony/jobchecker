@@ -122,9 +122,9 @@ defmodule Orchestration do
 
 
   def email_new_jobs(jobs, failures) do
-    {linkedInJobs, otherJobs} = Enum.split_with(jobs, fn {x, _} -> String.match?(x, ~r/LinkedIn/i) end)
-    {linkedInFailures, otherFailures} = Enum.split_with(failures, fn  %Jobchecker.Failures{company: x} -> String.match?(x, ~r/LinkedIn/i) end)
-    email_internal(linkedInJobs, linkedInFailures, "Jobchecker - LinkedIn Jobs")
+    {aggregatorJobs, otherJobs} = Enum.split_with(jobs, fn {x, _} -> String.match?(x, ~r/(LinkedIn|Builtin|Remote Rocketship)/i) end)
+    {aggregatorFailures, otherFailures} = Enum.split_with(failures, fn  %Jobchecker.Failures{company: x} -> String.match?(x, ~r/(LinkedIn|Builtin|Remote Rocketship)/i) end)
+    email_internal(aggregatorJobs, aggregatorFailures, "Jobchecker - Aggregator Jobs")
     email_internal(otherJobs, otherFailures, "Jobchecker - SELECTED JOBS")
   end
 
