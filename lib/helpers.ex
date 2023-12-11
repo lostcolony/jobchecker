@@ -36,6 +36,18 @@ defmodule Jobchecker.Helpers do
     |> JSON.decode!()
   end
 
+  def get_greenhouse(url, location_regex, terms) do
+    Jobchecker.Helpers.get_json(url)
+    |> Map.get("jobs")
+    |> Enum.filter(fn job ->
+      get_in(job, ["location", "name"]) |> String.match?(location_regex)
+    end)
+    |> Enum.map(fn job ->
+        {Map.get(job, "title"), Map.get(job, "absolute_url")}
+      end)
+    |> Jobchecker.Helpers.filter(terms)
+  end
+
   #TODO: Refactor to take a map instead of a tuple
   def filter(titles_and_urls, []), do: titles_and_urls
   def filter(titles_and_urls, terms) do
