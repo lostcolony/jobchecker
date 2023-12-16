@@ -3,6 +3,11 @@ defmodule Orchestration do
 
 
   def run() do
+    :ok = :hackney_pool.start_pool(:default, [timeout: 15000, max_connections: 100])
+    iterate()
+  end
+
+  def iterate() do
     Logger.debug("Executing...")
     names_and_funcs = elem(Code.eval_file("./jobs/jobs.exs"),0)
     lookup = fan_out(names_and_funcs)
@@ -23,7 +28,7 @@ defmodule Orchestration do
     persist_failures(new_jobs, new_failures)
     Logger.debug("Finished, sleeping to next run")
     Process.sleep(60*60*1000) #TODO: Move to config
-    run()
+    iterate()
   end
 
   def load_jobs(file) do
@@ -140,7 +145,7 @@ defmodule Orchestration do
 
     body = body <> (Enum.map(failures, fn %Jobchecker.Failures{company: company, failures: failure, timestamp: date} ->
       case DateTime.diff(DateTime.utc_now(), date, :second) do
-        x when x > 3601 -> company <> " has been failing for #{:erlang.float_to_binary(x/3600, [decimals: 2])} hours:\r\n\t" <> inspect(failure) # Number of seconds picked to make it so it'll have to fail over two hours before we see an email
+        x when x > 7200 -> company <> " has been failing for #{:erlang.float_to_binary(x/3600, [decimals: 2])} hours:\r\n\t" <> inspect(failure) # Number of seconds picked to make it so it'll have to fail over two hours before we see an email
         _ -> ""
       end
      end) |> Enum.join("\r\n")) |> String.trim()
