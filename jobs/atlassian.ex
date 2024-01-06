@@ -19,4 +19,8 @@ defmodule Jobchecker.Jobs.Atlassian do
       {Map.get(job, "title"), "https://www.atlassian.com/company/careers/details/" <>  Integer.to_string(Map.get(job, "id"))}
     end)
   end
+
+  def test() do
+    start(["https://www.atlassian.com/endpoint/careers/listings", ~r/(manager|director)/i])
+  end
 end
