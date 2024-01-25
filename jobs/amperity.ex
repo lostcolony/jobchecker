@@ -1,13 +1,10 @@
 defmodule Jobchecker.Jobs.Amperity do
   def start([url, terms]) do
     Jobchecker.Helpers.get_html(url)
-    |> Floki.find(".styles_job__5_c31")
-    |> Enum.filter(fn x ->
-      Floki.find(x, "p") |> Floki.text() |> String.match?(~r/remote/i)
-    end)
+    |> Floki.find(".styles_jobs_list__2sWgh > a")
     |> Enum.map(fn x ->
-      job_info = hd(Floki.find(x, "a"))
-      {Floki.text(job_info), "https://amperity.com" <> to_string(Floki.attribute(job_info, "href"))}
+      job_info = hd(Floki.find(x, "h5"))
+      {Floki.text(job_info), "https://amperity.com" <> to_string(Floki.attribute(x, "href"))}
     end)
     |> Jobchecker.Helpers.filter(terms)
   end
