@@ -1,11 +1,11 @@
 defmodule Jobchecker.Jobs.Netflix do
   def start([url, filters]) do
-    recurse(url, 0, filters)
+    recurse(url, 1, filters)
     |> Enum.uniq()
   end
 
   def recurse(url, page, filters) do
-    json = Jobchecker.Helpers.get_json(url)
+    json = Jobchecker.Helpers.get_json(url <> "&page=#{page}")
     pages = get_in(json, ["info", "postings", "num_pages"])
     items = getItems(json, filters)
     case page < pages do

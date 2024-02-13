@@ -19,6 +19,6 @@ defmodule Jobchecker.Jobs.Github do
   end
 
   def test() do
-    start(["https://githubinc.jibeapply.com/api/jobs?locations=Remote,,United States&sortBy=relevance&descending=false&internal=false", [~r/(engineering.*manager|manager.*engineering|software.*manager|manager.*software|engineering.*director|director.*engineering|software.*director|director.*software|engineering.*lead|lead.*engineering|software.*lead|lead.*software)/i]])
+    start(["https://githubinc.jibeapply.com/api/jobs?locations=Remote,,United%20States&sortBy=relevance&descending=false&internal=false", [~r/(engineering.*manager|manager.*engineering|software.*manager|manager.*software|engineering.*director|director.*engineering|software.*director|director.*software|engineering.*lead|lead.*engineering|software.*lead|lead.*software)/i]])
   end
 end
