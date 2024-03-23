@@ -1,19 +1,10 @@
 defmodule Jobchecker.Jobs.Mozilla do
   def start([url, terms]) do
-    items = Jobchecker.Helpers.get_html(url)
-    |> Floki.find(".title")
-
-    titles = items
-    |> Enum.map(&Floki.text/1)
-
-    urls = items |> Floki.attribute("a", "href") |> Enum.map(fn x -> "https://www.mozilla.org/en-US/" <> x end)
-
-    Enum.zip(titles, urls)
-    |> Jobchecker.Helpers.filter(terms)
+    Jobchecker.Helpers.get_greenhouse(url, ~r/Remote US/i, terms)
   end
 
 
   def test() do
-    start(["https://www.mozilla.org/en-US/careers/listings/?location=Remote US", [~r/(manager|director)/i]])
+    start(["https://boards-api.greenhouse.io/v1/boards/mozilla/jobs?content=true", [~r/(manager|director)/i]])
   end
 end
