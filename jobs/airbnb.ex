@@ -1,9 +1,9 @@
 defmodule Jobchecker.Jobs.Airbnb do
   def start([url, terms]) do
     Jobchecker.Helpers.get_greenhouse(url, ~r/United States/i, terms)
-    |> Enum.map(fn {title, url} ->
-      {title, String.replace(url, ~r/\?gh_jid=/, "")}
-    end)
+    # |> Enum.map(fn {title, url} ->
+    #   {title, String.replace(url, ~r/\?gh_jid=[.*]/, "")}
+    # end)
   end
 
   def test() do
