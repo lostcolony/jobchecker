@@ -15,5 +15,6 @@ defmodule Jobchecker.Jobs.Twilio do
 
   def test() do
     start(["https://www.twilio.com/en-us/company/jobs/jcr:content/root/global-main/section/column_control/column-0/jobs_component.jobs.json", [~r/(manager|director)/i]])
+    # Jobchecker.Helpers.get_json("https://www.twilio.com/en-us/company/jobs/jcr:content/root/global-main/section/column_control/column-0/jobs_component.jobs.json")
   end
 end

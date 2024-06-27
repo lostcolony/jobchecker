@@ -3,14 +3,19 @@ defmodule Jobchecker.Jobs.Smartsheet do
     entries = Jobchecker.Helpers.get_html(url)
     |> Floki.find(".views-field-title")
     |> Floki.find("a")
-    |> tl
 
-    urls = entries |> Floki.attribute("href")
+    case entries do
+      [_ | entries] ->
 
-    titles = entries |> Enum.map(fn x -> Floki.text(x) end)
+        urls = entries |> Floki.attribute("href")
 
-    Enum.zip([titles, urls])
-    |> Jobchecker.Helpers.filter(terms)
+        titles = entries |> Enum.map(fn x -> Floki.text(x) end)
+
+        Enum.zip([titles, urls])
+        |> Jobchecker.Helpers.filter(terms)
+      [] -> []
+    end
+
   end
 
 

@@ -46,18 +46,40 @@ defmodule Jobchecker.Helpers do
   end
 
   def get_json(url) do
+    _get_json(url, "gzip, deflate, br, zstd")
+    |> :zlib.gunzip()
+    |> JSON.decode!()
+  end
+
+  def get_json(url, encoding) do
+    _get_json(url, encoding)
+    |> JSON.decode!()
+  end
+
+  def _get_json(url, encoding) do
     HTTPoison.get!(
       url,
       [
         {"User-Agent",
-         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:104.0) Gecko/20100101 Firefox/104.0"},
-        {"Accept", "application/json"}
+         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0"},
+        {"Accept",
+         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"},
+        {"Accept-Language", "en-US,en;q=0.5"},
+        {"Accept-Encoding", encoding},
+        {"Connection", "keep-alive"},
+        {"Upgrade-Insecure-Requests", "1"},
+        {"Sec-Fetch-Dest", "document"},
+        {"Sec-Fetch-Mode", "navigate"},
+        {"Sec-Fetch-Site", "cross-site"},
+        {"Priority", "u=1"},
+        {"Pragma", "no-cache"},
+        {"Cache-Control", "no-cache"}
       ],
       recv_timeout: 10000
     ).body
-    |> JSON.decode!()
   end
 
+  @spec get_greenhouse(any(), any(), any()) :: none()
   def get_greenhouse(url, location_regex, terms) do
     Jobchecker.Helpers.get_json(url)
     |> Map.get("jobs")

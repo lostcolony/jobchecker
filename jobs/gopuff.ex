@@ -1,11 +1,16 @@
 defmodule Jobchecker.Jobs.Gopuff do
   def start([url, terms]) do
-    Jobchecker.Helpers.get_json(url)
+    jobs = Jobchecker.Helpers.get_json(url, "application/json")
     |> Enum.filter(fn x -> Map.get(x, "title") == "Tech, Product, & Design" end)
-    |> hd
-    |> Map.get("postings")
-    |> Enum.map(fn x -> {Map.get(x, "text"), Map.get(x, "hostedUrl")} end)
-    |> Jobchecker.Helpers.filter(terms)
+
+    case jobs do
+      [] -> []
+      [items|_] ->
+        items
+        |> Map.get("postings")
+        |> Enum.map(fn x -> {Map.get(x, "text"), Map.get(x, "hostedUrl")} end)
+        |> Jobchecker.Helpers.filter(terms)
+    end
   end
 
   def test() do

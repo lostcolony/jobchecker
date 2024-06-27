@@ -6,7 +6,22 @@ defmodule Orchestration do
     iterate()
   end
 
-  def iterate() do
+  def validate() do
+    :ok = :hackney_pool.start_pool(:default, timeout: 15000, max_connections: 100)
+    {jobs, failures} = get_jobs_and_failures()
+
+    filtered_jobs =
+      Enum.filter(jobs, fn
+        {_, [_ | _]} -> false
+        _ -> true
+      end)
+
+    [filtered_jobs, failures]
+    |> Enum.concat()
+    |> Enum.map(fn {x, _} -> x end)
+  end
+
+  def get_jobs_and_failures() do
     Logger.debug("Executing...")
     names_and_funcs = elem(Code.eval_file("./jobs/jobs.exs"), 0)
     lookup = fan_out(names_and_funcs)
@@ -15,14 +30,16 @@ defmodule Orchestration do
 
     results = listen(lookup, count, %{})
 
-    {jobs, failures} =
-      Enum.split_with(results, fn x ->
-        case x do
-          {company, jobs} when is_binary(company) and is_list(jobs) -> true
-          _ -> false
-        end
-      end)
+    Enum.split_with(results, fn x ->
+      case x do
+        {company, jobs} when is_binary(company) and is_list(jobs) -> true
+        _ -> false
+      end
+    end)
+  end
 
+  def iterate() do
+    {jobs, failures} = get_jobs_and_failures()
     new_jobs = get_new_jobs(jobs)
     new_failures = intersect_with_old_failures(failures)
     email_new_jobs(new_jobs, new_failures)
@@ -42,6 +59,7 @@ defmodule Orchestration do
     spawn_link(Jobchecker, :init, [job_tuple, self()])
   end
 
+  @spec fan_out(any()) :: any()
   def fan_out(name_and_funcs) do
     Process.flag(:trap_exit, true)
 
